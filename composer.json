@@ -10,6 +10,10 @@
         "monitoring",
         "updates"
     ],
+    "support": {
+        "docs": "https://github.com/cossette-numerique/craft-vitals/blob/main/README.md",
+        "issues": "https://github.com/cossette-numerique/craft-vitals/issues"
+    },
     "license": "MIT",
     "authors": [
         {
@@ -28,6 +32,7 @@
     },
     "extra": {
         "name": "Vitals",
-        "handle": "vitals"
+        "handle": "vitals",
+        "class": "modules\\vitals\\Vitals"
     }
 } 
