@@ -1,5 +1,5 @@
 {
-    "name": "votre-vendor/craft-vitals",
+    "name": "cossette-numerique/craft-vitals",
     "description": "Module de vérification des mises à jour pour Craft CMS",
     "type": "craft-module",
     "version": "1.0.1",
