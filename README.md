@@ -1,11 +1,30 @@
 # Module Vitals pour Craft CMS 5.x
 
-Version actuelle : 1.0.0
+Version actuelle : 1.0.1
+
+## Changelog
+
+### 1.0.1
+- Amélioration de la détection des mises à jour
+- Ajout de la vérification forcée des mises à jour via `forceUpdateCheck()`
+- Optimisation des performances de vérification
+
+### 1.0.0
+- Version initiale
+- Endpoint sécurisé de vérification des mises à jour
+- Support des mises à jour Craft CMS et plugins
 
 ## À propos
 
 Ce module a été développé pour permettre la surveillance des mises à jour de Craft CMS et de ses plugins via un endpoint API sécurisé. Il est particulièrement utile pour les systèmes de monitoring externes qui doivent vérifier régulièrement si des mises à jour sont disponibles.
 
+## Versionnage
+
+Le module suit la convention de versionnage sémantique (SemVer) :
+- MAJOR.MINOR.PATCH
+  - MAJOR : Changements incompatibles avec les versions précédentes
+  - MINOR : Ajout de fonctionnalités rétrocompatibles
+  - PATCH : Corrections de bugs rétrocompatibles
 
 ## Structure de la réponse
 
@@ -21,6 +40,11 @@ La réponse de l'API contient les informations suivantes :
 - 🔒 Endpoint sécurisé par token
 - 🔄 Détection automatique des mises à jour via `getHasReleases`
 - 🚨 Identification des mises à jour de sécurité
+- 📝 Logging détaillé des opérations
+- 🛡️ Gestion robuste des erreurs
+- 🔍 Détection améliorée des mises à jour des plugins
+- ⚡ Rate limiting configurable
+- 🔐 Validation de token renforcée
 
 ## Prérequis
 
@@ -53,6 +77,12 @@ return [
 ```env
 # Token de sécurité pour l'endpoint de vérification
 VITALS_TOKEN="votre_token_secret"
+
+# Limite de requêtes par heure (défaut: 60)
+VITALS_RATE_LIMIT=60
+
+# Longueur minimale du token (défaut: 32)
+VITALS_MIN_TOKEN_LENGTH=32
 ```
 
 4. Videz les caches :
@@ -65,13 +95,28 @@ php craft clear-caches/all
 ### Token de sécurité
 
 Le token doit être :
-- Stocké de manière sécurisée .env
+- Unique et complexe
+- Au moins 32 caractères (configurable via `VITALS_MIN_TOKEN_LENGTH`)
+- Stocké de manière sécurisée
 
 Exemple de génération de token :
 ```php
 echo bin2hex(random_bytes(32));
 ```
 
+### Rate Limiting
+
+Le rate limiting est configurable via la variable d'environnement `VITALS_RATE_LIMIT` :
+- Valeur par défaut : 60 requêtes par heure
+- Basé sur l'adresse IP du client
+- Utilise le cache de Craft pour le stockage
+
+### Logs
+
+Les logs sont écrits dans `storage/logs/web.log` avec différents niveaux :
+- `info` : Opérations normales, détails des vérifications de mises à jour
+- `warning` : Tentatives d'accès invalides, plugins sans méthode getHasReleases
+- `error` : Erreurs techniques
 
 ## Utilisation
 

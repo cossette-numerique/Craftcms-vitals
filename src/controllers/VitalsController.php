@@ -50,10 +50,8 @@ class VitalsController extends Controller
             try {
                 $this->logInfo('Début de la vérification des mises à jour');
                 
-                // Vérifier si le service updates est disponible
-                if (!Craft::$app->updates) {
-                    throw new \Exception('Le service de mises à jour n\'est pas disponible');
-                }
+                // Force la vérification des mises à jour
+                Craft::$app->getUpdates()->forceUpdateCheck();
                 
                 $updates = Craft::$app->updates->getUpdates();
                 

@@ -18,7 +18,7 @@ class Module extends BaseModule
      * Version du module
      * Format: MAJOR.MINOR.PATCH
      */
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.0.1';
 
     public function init(): void
     {
