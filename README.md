@@ -57,7 +57,7 @@ La réponse de l'API contient les informations suivantes :
 
 1. Installez le module via Composer :
 ```bash
-composer require votre-vendor/craft-vitals
+composer require cossette-numerique/craft-vitals
 ```
 
 2. Ajoutez la configuration dans `config/app.php` :
