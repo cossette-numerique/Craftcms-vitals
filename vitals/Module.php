@@ -9,31 +9,34 @@ use yii\base\Module as BaseModule;
 
 class Module extends BaseModule
 {
-    public const VERSION = '1.0.1';
+    public static function config(): array
+    {
+        return [
+            'components' => [],
+        ];
+    }
 
-    public function init(): void
+    public function init()
     {
         parent::init();
         
+        // Set the controllerNamespace based on whether this is a console or web request
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             $this->controllerNamespace = 'modules\\vitals\\console\\controllers';
         } else {
             $this->controllerNamespace = 'modules\\vitals\\controllers';
         }
 
+        // Register module with the application
         Craft::setAlias('@modules/vitals', __DIR__);
         
+        // Register URL rules
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             function(RegisterUrlRulesEvent $event) {
                 $event->rules['vitals/updates'] = 'vitals/vitals/updates';
             }
-        );
-
-        Craft::info(
-            'Module Vitals initialisé (version ' . self::VERSION . ')',
-            __METHOD__
         );
     }
 } 
