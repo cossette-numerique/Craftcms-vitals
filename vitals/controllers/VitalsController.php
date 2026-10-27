@@ -9,23 +9,39 @@ use modules\vitals\Module;
 
 class VitalsController extends Controller
 {
+    public const TOKEN_HEADER = 'X-Vitals-Token';
+
     protected array|bool|int $allowAnonymous = ['updates'];
-    
+
     public function actionUpdates(): Response
     {
-        $providedToken = Craft::$app->getRequest()->getQueryParam('token');
+        $request = Craft::$app->getRequest();
+
+        // Le token ne doit jamais transiter dans l'URL (logs serveur, proxy, APM)
+        if ($request->getQueryParam('token') !== null) {
+            return $this->noStore($this->asJson([
+                'error' => 'Le token doit être envoyé dans l\'en-tête ' . self::TOKEN_HEADER . ', pas dans l\'URL',
+                'code' => 'TOKEN_IN_QUERY'
+            ])->setStatusCode(400));
+        }
+
+        $providedToken = $request->getHeaders()->get(self::TOKEN_HEADER);
         $expectedToken = App::env('VITALS_TOKEN');
 
-        if (!$providedToken || $providedToken !== $expectedToken) {
-            return $this->asJson([
+        if (
+            !is_string($providedToken) || $providedToken === '' ||
+            !is_string($expectedToken) || $expectedToken === '' ||
+            !hash_equals($expectedToken, $providedToken)
+        ) {
+            return $this->noStore($this->asJson([
                 'error' => 'Accès refusé : token invalide ou manquant',
                 'code' => 'INVALID_TOKEN'
-            ])->setStatusCode(403);
+            ])->setStatusCode(403));
         }
 
         try {
             $updates = Craft::$app->updates->getUpdates(true);
-            
+
             if (!$updates) {
                 throw new \Exception('Impossible de récupérer les mises à jour');
             }
@@ -42,7 +58,7 @@ class VitalsController extends Controller
             // Vérification du CMS
             if ($updates->cms->hasReleases) {
                 $latestVersion = end($updates->cms->releases);
-                
+
                 $coreUpdate = [
                     'current' => Craft::$app->getVersion(),
                     'latest' => $latestVersion->version
@@ -62,7 +78,7 @@ class VitalsController extends Controller
                     if (!$plugin) continue;
 
                     $latestVersion = end($pluginUpdate->releases);
-                    
+
                     $pluginData = [
                         'current' => $plugin->getVersion(),
                         'latest' => $latestVersion->version
@@ -76,15 +92,22 @@ class VitalsController extends Controller
                 }
             }
 
-            return $this->asJson($response);
+            return $this->noStore($this->asJson($response));
         } catch (\Throwable $e) {
             Craft::error('Erreur lors de la récupération des mises à jour : ' . $e->getMessage(), __METHOD__);
-            
-            return $this->asJson([
+
+            return $this->noStore($this->asJson([
                 'error' => 'Une erreur est survenue lors de la récupération des mises à jour',
                 'code' => 'INTERNAL_ERROR',
                 'message' => YII_DEBUG ? $e->getMessage() : null
-            ])->setStatusCode(500);
+            ])->setStatusCode(500));
         }
     }
-} 
+
+    // Réponses jamais mises en cache par un CDN ou un proxy
+    private function noStore(Response $response): Response
+    {
+        $response->getHeaders()->set('Cache-Control', 'no-store');
+        return $response;
+    }
+}
